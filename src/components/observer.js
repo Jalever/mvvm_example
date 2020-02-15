@@ -21,6 +21,7 @@ Observer.prototype = {
       configurable: true,
       get: function getter() {
         if (Dep.target) {
+        //依赖收集
           dep.addSub(Dep.target);
         }
         return val;
@@ -29,18 +30,20 @@ Observer.prototype = {
         if (newVal === val) return;
 
         val = newVal;
+        //派发更新
         dep.notify();
       }
     });
   }
 };
 
+// 外面再写一个函数, 不用每次调用都写个new, 也方便递归调用
 function observe(value, vm) {
-  if (!value || typeof value !== "object") {
-    return;
-  }
+  // 如果不是对象的话就直接return掉
+  // 防止递归溢出
+  if (!value || typeof value !== "object") return;
+
   return new Observer(value);
 }
 
-exports.observe = observe;
-exports.Dep = Dep;
+module.exports = observe;

@@ -1,5 +1,5 @@
 //监听器Watcher
-var { Dep } = require("./observer");
+var Dep = require("./Dep");
 
 function Watcher(vm, exp, cb) {
   this.vm = vm;

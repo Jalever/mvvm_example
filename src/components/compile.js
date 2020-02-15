@@ -80,13 +80,8 @@ Compile.prototype = {
       }
     });
   },
+  // 编译文本
   compileText: function(node, exp) {
-    // console.warn("this.vm");
-    // console.log(this.vm);
-    // console.warn("exp");
-    // console.log(exp);
-    // console.log("\n");
-
     var initText = this.vm[exp];
     UTILS.updateText(node, initText);
 
@@ -94,6 +89,7 @@ Compile.prototype = {
       UTILS.updateText(node, newVal);
     });
   },
+  // 编译event listener
   compileEvent: function(node, vm, exp, dir) {
     var eventType = dir.split(":")[1];
     var cb = vm.methods && vm.methods[exp];
