@@ -1,0 +1,33 @@
+<html>
+  <head>
+    <title>MVVM</title>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width,initial-scale=1.0,user-scalable=0,maximum-scale=1"
+    />
+  </head>
+
+  <body>
+    <div id="mvvm-app" style="text-align: center;margin-top:100px;">
+      <input v-model="title" />
+      <h2>{{title}}</h2>
+      <button v-on:click="clickBtn">数据初始化</button>
+    </div>
+  </body>
+
+  <script src="./bundle.js"></script>
+  <script type="text/javascript">
+    var vm = new MVVM({
+      el: "#mvvm-app",
+      data: {
+        title: "hello world"
+      },
+      methods: {
+        clickBtn: function(e) {
+          this.title = "hello world";
+        }
+      }
+    });
+  </script>
+</html>
