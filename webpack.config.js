@@ -27,6 +27,7 @@ module.exports = {
     alias: {
       "@": path.resolve(__dirname, "src")
       // Templates: path.resolve(__dirname, 'src/templates/')
-    }
+    },
+    extensions: ['.js', '.jsx', '.json']
   }
 };

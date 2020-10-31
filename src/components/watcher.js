@@ -1,32 +1,32 @@
-//监听器Watcher
-var { Dep } = require("./observer");
+import Dep from "./Dep";
 
-function Watcher(vm, exp, cb) {
-  this.vm = vm;
+export default function Watcher (vm, exp, cb) { 
+this.vm = vm;
   this.exp = exp;
   this.cb = cb;
-  this.value = this.get(); // 将自己添加到订阅器的操作
+  this.value = this.get();
 }
 
 Watcher.prototype = {
-  update: function() {
+  get: function () {
+    Dep.target = this;
+    let value = this.vm.data[this.exp];
+    Dep.target = null;
+    return value;
+  },
+  update: function () {
     this.run();
   },
-  run: function() {
-    var newVal = this.vm.data[this.exp],
-      oldVal = this.value;
-
-    if (newVal !== oldVal) {
-      this.value = newVal;
-
-      this.cb.call(this.vm, newVal);
-    }
+  run: function () {
+    let newVal = this.vm.data[this.exp];
+    let oldVal = this.value;
+    console.warn('newVal');
+    console.log(newVal);
+    console.warn('oldVal');
+    console.log(oldVal);
+    
+    if (newVal === oldVal) return;
+    this.value = newVal;
+    this.cb.call(this.vm, newVal, oldVal);
   },
-  get: function() {
-    Dep.target = this; // 缓存自己
-    var val = this.vm.data[this.exp]; // 强制执行监听器里的get函数
-    Dep.target = null; // 释放自己
-    return val;
-  }
-};
-module.exports = Watcher;
+}

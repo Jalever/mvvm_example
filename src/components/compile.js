@@ -1,125 +1,123 @@
-var Watcher = require("./watcher");
-var UTILS = require("@/util/index");
+import Watcher from './watcher'
 
-// Compile: 解析器
-function Compile(el, vm) {
-  this.vm = vm;
-  this.el = document.querySelector(el);
-
-  this.fragment = null;
-  this.init();
+export default function Compile(el, vm) {
+  this.vm = vm
+  this.el = document.querySelector(el)
+  this.fragment = null
+  this.init()
 }
 
 Compile.prototype = {
-  init: function() {
+  init: function () {
     if (this.el) {
-      this.fragment = this.nodeToFragment(this.el);
-
-      this.compileElement(this.fragment);
-
-      this.el.appendChild(this.fragment);
+      this.fragment = this.nodeToFragment(this.el)
+      this.compile(this.fragment)
+      this.el.appendChild(this.fragment)
     } else {
-      console.log("DOM元素不存在");
     }
   },
-  // 将DOM元素移入fragment中
-  nodeToFragment: function(el) {
-    var fragment = document.createDocumentFragment();
-    var child = el.firstChild;
-
+  nodeToFragment: function (el) {
+    let fragment = document.createDocumentFragment()
+    let child = el.firstChild
     while (child) {
-      fragment.appendChild(child);
-      child = el.firstChild;
+      fragment.appendChild(child)
+      child = el.firstChild
     }
-
-    return fragment;
+    return fragment
   },
-  compileElement: function(el) {
-    var childNodes = el.childNodes;
-    var self = this;
-
-    Array.prototype.slice.call(childNodes).forEach(function(node) {
-      var reg = /\{\{(.*)\}\}/;
-      var text = node.textContent;
-
-      if (UTILS.isElementNode(node)) {
-        self.compile(node);
-      } else if (UTILS.isTextNode(node) && reg.test(text)) {
-        self.compileText(node, reg.exec(text)[1]);
+  compile: function (el) {
+    let childNodes = el.childNodes
+    Array.prototype.slice.call(childNodes).forEach((node) => {
+      let reg = /\{\{(.*)\}\}/
+      let textContent = node.textContent
+      if (this.isElementNode(node)) {
+        this.compileElement(node)
+      } else if (this.isTextNode(node) && reg.test(textContent)) {
+        this.compileText(node, reg.exec(textContent)[1])
       }
 
-      if (node.childNodes && node.childNodes.length) {
-        //递归遍历node
-        self.compileElement(node);
-      }
-    });
+      if (node.childNodes && node.childNodes.length) this.compile(node)
+    })
   },
-  compile: function(node) {
-    var nodeAttrs = node.attributes,
-      self = this;
+  compileElement: function (node) {
+    let nodeAttrs = node.attributes
+    Array.prototype.forEach.call(nodeAttrs, (attr) => {
+      let attrName = attr.name
 
-    Array.prototype.forEach.call(nodeAttrs, function(attr) {
-      // for example: attr:  v-model="title"; v-on:click="clickBtn";
-      var attrName = attr.name;
-
-      //是否以"v-"开头的
-      if (UTILS.isDirective(attrName)) {
-        //title; clickBtn
-        var exp = attr.value,
-          dir = attrName.substring(2); // model; on:click
-
-        // 是否是"on: "事件指令
-        if (UTILS.isEventDirective(dir)) {
-          self.compileEvent(node, self.vm, exp, dir);
+      if (this.isDirective(attrName)) {
+        let val = attr.value,
+          dir = attrName.substring(2)
+        
+        if (this.isEventDirective(dir)) {
+          this.compileEvent(node, this.vm, val, dir)
         } else {
-          // v-model 指令
-          self.compileModel(node, self.vm, exp, dir);
+          this.compileModel(node, this.vm, val, dir)
         }
 
-        node.removeAttribute(attrName);
+        node.removeAttribute(attrName)
       }
-    });
+    })
   },
-  compileText: function(node, exp) {
-    // console.warn("this.vm");
-    // console.log(this.vm);
-    // console.warn("exp");
-    // console.log(exp);
-    // console.log("\n");
 
-    var initText = this.vm[exp];
-    UTILS.updateText(node, initText);
-
-    new Watcher(this.vm, exp, function(newVal) {
-      UTILS.updateText(node, newVal);
-    });
+  compileText: function (node, exp) {
+    let initText = this.vm[exp]
+    this.textUpdater(node, initText)
+    new Watcher(this.vm, exp, (value) => this.textUpdater(node, value))
   },
-  compileEvent: function(node, vm, exp, dir) {
-    var eventType = dir.split(":")[1];
-    var cb = vm.methods && vm.methods[exp];
 
-    if (eventType && cb) {
-      node.addEventListener(eventType, cb.bind(vm), false);
-    }
+  compileEvent: function (node, vm, exp, dir) {
+    let eventType = dir.split(':')[1]
+    let cb = vm.methods && vm.methods[exp]
+
+    if (eventType && cb) node.addEventListener(eventType, cb.bind(vm), false)
   },
-  compileModel: function(node, vm, exp, dir) {
-    var self = this;
-    var val = this.vm[exp];
 
-    UTILS.modelUpdater(node, val);
+  compileModel: function (node, vm, exp, dir) {
+    const self = this;
+    let val = this.vm[exp]
+    this.modelUpdater(node, val)
+    new Watcher(this.vm, exp, (val) => this.modelUpdater(node, val))
+    
+    node.addEventListener('input', (e) => {
+      let newValue = e.target.value
+      if (val === newValue) return
 
-    new Watcher(this.vm, exp, function(newVal) {
-      UTILS.modelUpdater(node, newVal);
-    });
+      self.vm[exp] = newValue
+      val = newValue
+      console.warn('this.vm');
+      console.log(this.vm);
+      console.log('\n');
+      
+    })
+  },
 
-    node.addEventListener("input", function(e) {
-      var newValue = e.target.value;
+  //v-model 更新器
+  modelUpdater: function (node, value) {
+    node.value = typeof value === 'undefined' ? '' : value
+  },
 
-      if (val === newValue) return;
+  //v-model 更新器
+  textUpdater: function (node, value) {
+    node.textContent = typeof value === 'undefined' ? '' : value
+  },
 
-      self.vm[exp] = newValue;
-      // val = newValue;
-    });
-  }
-};
-module.exports = Compile;
+  //是否是‘v-’开头的指令
+  isDirective: function (attr) {
+    return attr.indexOf('v-') === 0
+  },
+
+  // 是否是element节点
+  isElementNode: function (node) {
+    return node.nodeType === 1
+  },
+
+  // 是否是text节点
+  isTextNode: function (node) {
+    return node.nodeType === 3
+  },
+
+  // 是否是事件directive
+  isEventDirective: function (attrname) {
+    return attrname.indexOf('on:') === 0
+  },
+}

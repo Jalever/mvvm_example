@@ -1,32 +1,34 @@
-var Compile = require("./compile");
-var { observe } = require("./observer");
+import observe from './observer'
+import Compile from './compile'
 
-function MVVM(options) {
-  var self = this;
-  this.data = options.data;
-  this.methods = options.methods;
+export default function MVVM(options) {
+  // console.warn('1');
 
-  Object.keys(this.data).forEach(function(key) {
-    self.proxyKeys(key);
-  });
+  let self = this
+  this.data = options.data
+  this.methods = options.methods
+  Object.keys(this.data).forEach(key => this.proxyKeys(key))
 
-  observe(this.data);
-  new Compile(options.el, this);
+  observe(this.data)
+  new Compile(options.el, this)
 }
 
 MVVM.prototype = {
-  proxyKeys: function(key) {
-    var self = this;
+  proxyKeys: function (key) {
+    console.warn('proxyKeys - key');
+    console.log(key);
+    console.log('\n');
+    
+    var self = this
     Object.defineProperty(this, key, {
       enumerable: false,
       configurable: true,
       get: function getter() {
-        return self.data[key];
+        return self.data[key]
       },
       set: function setter(newVal) {
-        self.data[key] = newVal;
-      }
-    });
-  }
-};
-module.exports = MVVM;
+        self.data[key] = newVal
+      },
+    })
+  },
+}
