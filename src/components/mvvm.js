@@ -2,8 +2,6 @@ import observe from './observer'
 import Compile from './compile'
 
 export default function MVVM(options) {
-  // console.warn('1');
-
   let self = this
   this.data = options.data
   this.methods = options.methods
