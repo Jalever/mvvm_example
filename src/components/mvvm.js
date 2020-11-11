@@ -2,7 +2,6 @@ import observe from './observer'
 import Compile from './compile'
 
 export default function MVVM(options) {
-  let self = this
   this.data = options.data
   this.methods = options.methods
   Object.keys(this.data).forEach(key => this.proxyKeys(key))
@@ -13,10 +12,6 @@ export default function MVVM(options) {
 
 MVVM.prototype = {
   proxyKeys: function (key) {
-    console.warn('proxyKeys - key');
-    console.log(key);
-    console.log('\n');
-    
     var self = this
     Object.defineProperty(this, key, {
       enumerable: false,
